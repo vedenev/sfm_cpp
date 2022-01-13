@@ -5,16 +5,20 @@
             "label": "C/C++: g++ build active file",
             "command": "/usr/bin/g++",
             "args": [
+                "--std", "c++17",
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
+                "${fileDirname}/utils/**.cpp",
+                "${fileDirname}/utils/**.hpp",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-I", "/usr/local/include/opencv4",
                 "-L", "/usr/local/lib",
                 "-lopencv_core",
                 "-lopencv_videoio",
-                "-lopencv_highgui"
+                "-lopencv_highgui",
+                "-lopencv_imgcodecs"
             ],
             "options": {
                 "cwd": "${fileDirname}"

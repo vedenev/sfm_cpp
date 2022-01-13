@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": [],
+            "args": ["--video2frames", "./android_xiaomi_redmi_note_5.mp4"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
