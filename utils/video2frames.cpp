@@ -36,6 +36,7 @@ void video2frames(string videoPath) {
 
     Mat frame;
     int frameIndex = 0;
+    cout << "convert " << videoPathFs.filename() << " to frames..." << endl;
     while(true){
         reader >> frame;
         
@@ -49,6 +50,7 @@ void video2frames(string videoPath) {
 
         frameIndex++;
     }
+    cout << "convertion done" << endl;
  
   reader.release();
 

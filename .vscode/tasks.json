@@ -11,14 +11,18 @@
                 "${file}",
                 "${fileDirname}/utils/**.cpp",
                 "${fileDirname}/utils/**.hpp",
+                "${fileDirname}/calibration/**.cpp",
+                "${fileDirname}/calibration/**.hpp",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}",
+                "${fileDirname}/sfm",
                 "-I", "/usr/local/include/opencv4",
                 "-L", "/usr/local/lib",
                 "-lopencv_core",
                 "-lopencv_videoio",
                 "-lopencv_highgui",
-                "-lopencv_imgcodecs"
+                "-lopencv_imgcodecs",
+                "-lopencv_imgproc",
+                "-lopencv_calib3d"
             ],
             "options": {
                 "cwd": "${fileDirname}"
