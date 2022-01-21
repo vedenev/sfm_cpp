@@ -2,6 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include "utils/video2frames.hpp"
 #include "calibration/calibrate.hpp"
+#include "reconstruction/reconstruct.hpp"
 
 using namespace std;
 using namespace cv;
@@ -23,7 +24,9 @@ void printUsage() {
 	cout << "   images are png" << endl;
 	cout << "   then it prints calibration parameters" << endl;
 	cout <<  endl;
-
+	cout << "sfm --reconstruct path_to_images" << endl;
+	cout << "   reconstruct 3d scene" << endl;
+	cout << "   path_to_images is directory with images" << endl;
 }
 
 int main(int argc, char *argv[]){
@@ -42,6 +45,11 @@ int main(int argc, char *argv[]){
 
 	if (flag == "--calibrate") {
 		calibrate(argv[2]);
+		return 0;
+	}
+
+	if (flag == "--reconstruct") {
+		reconstruct(argv[2]);
 		return 0;
 	}
 

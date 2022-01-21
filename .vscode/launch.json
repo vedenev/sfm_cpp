@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/sfm",
-            "args": ["--calibrate", "./android_xiaomi_redmi_note_5_selected"],
+            "args": ["--reconstruct", "./doll_selected"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

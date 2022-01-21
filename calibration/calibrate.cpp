@@ -76,7 +76,7 @@ void processImages(string imagesDirPath,
     vector<String> images;
     glob(imagesDirPath, images);
 
-    cv::Mat frame, gray;
+    Mat frame, gray;
     // vector to store the pixel coordinates of detected checker board corners 
     std::vector<cv::Point2f> corner_pts;
     bool success;
@@ -93,13 +93,13 @@ void processImages(string imagesDirPath,
     // Looping over all the images in the directory
     for(int i = 0; i<images.size(); i++)
     {
-        frame = cv::imread(images[i]);
-        cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+        frame = imread(images[i]);
+        cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
         // Finding checker board corners
         // If desired number of corners are found in the image
         // then success = true  
-        success = cv::findChessboardCorners(gray, size, corner_pts, options);
+        success = findChessboardCorners(gray, size, corner_pts, options);
 
         /* 
             * If desired number of corner are detected,
@@ -110,7 +110,7 @@ void processImages(string imagesDirPath,
             
             
             // refining pixel coordinates for given 2d points.
-            cv::cornerSubPix(gray, 
+            cornerSubPix(gray, 
                             corner_pts,
                             cv::Size(11,11),
                             cv::Size(-1,-1),criteria);
