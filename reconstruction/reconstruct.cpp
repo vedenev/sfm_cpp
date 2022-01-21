@@ -18,25 +18,26 @@ void reconstruct(string imagesDirPath){
     const float ratio_thresh = 0.7f;
     
     
+    Mat image1, gray1;
+    Mat image2, gray2;
+    Mat descriptors1;
+    Mat descriptors2;
+    Mat img_matches;
+
+    vector<KeyPoint> keypoints1;
+    vector<KeyPoint> keypoints2;
+    vector<vector<DMatch> > knn_matches;
+    vector<DMatch> good_matches;
 
     for(int imageIndex = 0; imageIndex < (images.size() - 1); imageIndex++) {
 
-        Mat image1, gray1;
-        Mat image2, gray2;
-        vector<KeyPoint> keypoints1;
-        Mat descriptors1;
-        vector<KeyPoint> keypoints2;
-        Mat descriptors2;
-        Mat img_matches;
-        vector<vector<DMatch> > knn_matches;
-        std::vector<DMatch> good_matches;
+        
+        
 
         image1 = imread(images[imageIndex]);
         cvtColor(image1, gray1, COLOR_BGR2GRAY);
         image2 = imread(images[imageIndex + 1]);
         cvtColor(image2, gray2, COLOR_BGR2GRAY);
-
-        
 
         
         
@@ -65,7 +66,19 @@ void reconstruct(string imagesDirPath){
                     Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
         
         imwrite("./tmp/" + to_string(imageIndex) + ".png", img_matches);
+
+        keypoints1.clear();
+        keypoints2.clear();
+        knn_matches.clear();
+        good_matches.clear();
  
     }
+    image1.release();
+    gray1.release();
+    image2.release();
+    gray2.release();
+    descriptors1.release();
+    descriptors2.release();
+    img_matches.release();
 
 }
