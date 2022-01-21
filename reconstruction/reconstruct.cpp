@@ -32,11 +32,18 @@ void reconstruct(string imagesDirPath){
     vector<vector<DMatch> > knn_matches;
     vector<DMatch> good_matches;
 
+    Mat CAMERA_MATRIX = (Mat_<float>(3,3) << 1487.886270357746, 0, 547.1524898799552,
+                                0, 1488.787677381604, 979.9460018614599,
+                                0, 0, 1);
+    // to get CAMERA_MATRIX: calibrate camera with:
+    // sfm --calibrate path_to_images
+
     image_old = imread(images[0]);
     cvtColor(image_old, gray_old, COLOR_BGR2GRAY);
     detector->detectAndCompute(gray_old, noArray(), keypoints_old, descriptors_old);
 
-    for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
+    //for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
+    for(int imageIndex = 1; imageIndex < 2; imageIndex++) {
 
         
         
@@ -53,16 +60,17 @@ void reconstruct(string imagesDirPath){
         for (size_t i = 0; i < knn_matches.size(); i++)
         {
             if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance)
-            {
+            {      
                 good_matches.push_back(knn_matches[i][0]);
             }
         }
         //-- Draw matches
         
-        drawMatches(image_old, keypoints_old, image, keypoints, good_matches, img_matches, Scalar::all(-1),
-                    Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
-        
-        imwrite("./tmp/" + to_string(imageIndex) + ".png", img_matches);
+        //drawMatches(image_old, keypoints_old, image, keypoints, good_matches, img_matches, Scalar::all(-1),
+        //            Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+        //imwrite("./tmp/" + to_string(imageIndex) + ".png", img_matches);
+
+
 
         keypoints_old = keypoints;
         keypoints.clear();
