@@ -18,38 +18,35 @@ void reconstruct(string imagesDirPath){
     const float ratio_thresh = 0.7f;
     
     
-    Mat image1, gray1;
-    Mat image2, gray2;
-    Mat descriptors1;
-    Mat descriptors2;
-    Mat img_matches;
+    Mat image_old;
+    Mat gray_old;
+    Mat descriptors_old;
+    vector<KeyPoint> keypoints_old;
 
-    vector<KeyPoint> keypoints1;
-    vector<KeyPoint> keypoints2;
+    Mat image;
+    Mat gray;
+    Mat descriptors;
+    vector<KeyPoint> keypoints;
+
+    Mat img_matches;
     vector<vector<DMatch> > knn_matches;
     vector<DMatch> good_matches;
 
-    for(int imageIndex = 0; imageIndex < (images.size() - 1); imageIndex++) {
+    image_old = imread(images[0]);
+    cvtColor(image_old, gray_old, COLOR_BGR2GRAY);
+    detector->detectAndCompute(gray_old, noArray(), keypoints_old, descriptors_old);
+
+    for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
 
         
         
-
-        image1 = imread(images[imageIndex]);
-        cvtColor(image1, gray1, COLOR_BGR2GRAY);
-        image2 = imread(images[imageIndex + 1]);
-        cvtColor(image2, gray2, COLOR_BGR2GRAY);
+        image = imread(images[imageIndex]);
+        cvtColor(image, gray, COLOR_BGR2GRAY);
+        detector->detectAndCompute(gray, noArray(), keypoints, descriptors);
 
         
         
-        
-        detector->detectAndCompute(gray1, noArray(), keypoints1, descriptors1);
-
-        
-        detector->detectAndCompute(gray2, noArray(), keypoints2, descriptors2);
-
-        
-        
-        matcher->knnMatch( descriptors1, descriptors2, knn_matches, 2 );
+        matcher->knnMatch(descriptors_old, descriptors, knn_matches, 2 );
 
         //-- Filter matches using the Lowe's ratio test
         
@@ -62,23 +59,28 @@ void reconstruct(string imagesDirPath){
         }
         //-- Draw matches
         
-        drawMatches(image1, keypoints1, image2, keypoints2, good_matches, img_matches, Scalar::all(-1),
+        drawMatches(image_old, keypoints_old, image, keypoints, good_matches, img_matches, Scalar::all(-1),
                     Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
         
         imwrite("./tmp/" + to_string(imageIndex) + ".png", img_matches);
 
-        keypoints1.clear();
-        keypoints2.clear();
+        keypoints_old = keypoints;
+        keypoints.clear();
+
+        descriptors_old = descriptors;
+        image_old = image;
+        
+
         knn_matches.clear();
         good_matches.clear();
  
     }
-    image1.release();
-    gray1.release();
-    image2.release();
-    gray2.release();
-    descriptors1.release();
-    descriptors2.release();
+    image_old.release();
+    gray_old.release();
+    image.release();
+    gray.release();
+    descriptors_old.release();
+    descriptors.release();
     img_matches.release();
 
 }
