@@ -40,7 +40,9 @@ void reconstruct(string imagesDirPath){
 
     double PROBABILITY = 0.999;
     double THRESHOLD = 1.0;
-    double DISTANCE_THRESHOLD = 10.0;
+
+
+    double DISTANCE_THRESHOLD = 100.0;
 
     image_old = imread(images[0]);
     cvtColor(image_old, gray_old, COLOR_BGR2GRAY);
@@ -93,24 +95,33 @@ void reconstruct(string imagesDirPath){
                                             inliersMask);
 
 
+        cout << imageIndex << endl;
 
+        cout << "mask 1 : " << countNonZero(inliersMask) << endl;
 
         Mat R, t, triangulatedPoints;
-        recoverPose	(essentialMatrix,
+        recoverPose(essentialMatrix,
             points1,
             points2,
             CAMERA_MATRIX,
             R,
             t,
             DISTANCE_THRESHOLD,
-            inliersMask,
+            inliersMask, // can be modified
             triangulatedPoints);
         
-        cout << imageIndex << endl;
-        cout << t << endl;
-        cout << R << endl;
+
+
+        //cout << imageIndex << endl;
+        //cout << t << endl;
+        //cout << R << endl;
         //cout << triangulatedPoints.rows <<  " " << triangulatedPoints.cols << endl;
-        cout << format(triangulatedPoints.t(), Formatter::FMT_PYTHON) << endl;
+        //cout << format(triangulatedPoints.t(), Formatter::FMT_PYTHON) << endl;
+        //cout << endl;
+
+        cout << "mask 2 : " << countNonZero(inliersMask) << endl;
+        cout << "points1: " << points1.size() << endl;
+        cout << "triangulatedPoints: " << triangulatedPoints.rows <<  " " << triangulatedPoints.cols << endl;
         cout << endl;
 
 
