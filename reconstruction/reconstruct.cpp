@@ -31,6 +31,8 @@ void reconstruct(string imagesDirPath){
     Mat img_matches;
     vector<vector<DMatch> > knn_matches;
     vector<DMatch> good_matches;
+    vector<DMatch> good_matches_Inliers;
+    vector<DMatch> good_matches_2;
 
     Mat CAMERA_MATRIX = (Mat_<float>(3,3) << 1487.886270357746, 0, 547.1524898799552,
                                 0, 1488.787677381604, 979.9460018614599,
@@ -93,21 +95,31 @@ void reconstruct(string imagesDirPath){
                                             PROBABILITY,
                                             THRESHOLD,
                                             inliersMask);
+        
+        vector<Point2f> points1Inliers;
+        vector<Point2f> points2Inliers;
+        for (size_t i = 0; i < points1.size(); i++) {
+            if (inliersMask[i]) {
+                good_matches_Inliers.push_back(good_matches[i]);
+                points1Inliers.push_back(points1[i]);
+                points2Inliers.push_back(points2[i]);
+            }
+        }
 
 
         cout << imageIndex << endl;
 
-        cout << "mask 1 : " << countNonZero(inliersMask) << endl;
+        cout << "inliersMask : " << countNonZero(inliersMask) << endl;
 
-        Mat R, t, triangulatedPoints;
+        Mat R, t, triangulatedPoints, mask2;
         recoverPose(essentialMatrix,
-            points1,
-            points2,
+            points1Inliers,
+            points2Inliers,
             CAMERA_MATRIX,
             R,
             t,
             DISTANCE_THRESHOLD,
-            inliersMask, // can be modified
+            mask2, 
             triangulatedPoints);
         
 
@@ -118,11 +130,26 @@ void reconstruct(string imagesDirPath){
         //cout << triangulatedPoints.rows <<  " " << triangulatedPoints.cols << endl;
         //cout << format(triangulatedPoints.t(), Formatter::FMT_PYTHON) << endl;
         //cout << endl;
+        int tt = 0;
+        for (size_t i = 0; i < good_matches_Inliers.size(); i++) {
+            if (mask2.at<unsigned char>(i)) { 
+                good_matches_2.push_back(good_matches_Inliers[i]);
+                tt++;
+            }
+        } 
 
-        cout << "mask 2 : " << countNonZero(inliersMask) << endl;
-        cout << "points1: " << points1.size() << endl;
+
+        cout << "ponits1 : " << points1.size() << endl;
+        cout << "good_matches : " << good_matches.size() << endl;
+        cout << "good_matches_Inliers : " << good_matches_Inliers.size() << endl;
+        cout << "mask2 : " << countNonZero(mask2) << endl;
+        cout << "good_matches_2 : " << good_matches_2.size() << endl;
+        cout << "tt : " << tt << endl;
+        cout << "points1Inliers: " << points1Inliers.size() << endl;
         cout << "triangulatedPoints: " << triangulatedPoints.rows <<  " " << triangulatedPoints.cols << endl;
         cout << endl;
+
+
 
 
         keypoints_old = keypoints;
@@ -134,6 +161,8 @@ void reconstruct(string imagesDirPath){
 
         knn_matches.clear();
         good_matches.clear();
+        good_matches_Inliers.clear();
+        good_matches_2.clear();
  
     }
     image_old.release();
