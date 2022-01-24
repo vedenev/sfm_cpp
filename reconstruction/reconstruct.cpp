@@ -38,12 +38,16 @@ void reconstruct(string imagesDirPath){
     // to get CAMERA_MATRIX: calibrate camera with:
     // sfm --calibrate path_to_images
 
+    double PROBABILITY = 0.999;
+    double THRESHOLD = 1.0;
+    double DISTANCE_THRESHOLD = 10.0;
+
     image_old = imread(images[0]);
     cvtColor(image_old, gray_old, COLOR_BGR2GRAY);
     detector->detectAndCompute(gray_old, noArray(), keypoints_old, descriptors_old);
 
-    //for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
-    for(int imageIndex = 1; imageIndex < 2; imageIndex++) {
+    for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
+    //for(int imageIndex = 1; imageIndex < 2; imageIndex++) {
 
         
         
@@ -57,11 +61,18 @@ void reconstruct(string imagesDirPath){
 
         //-- Filter matches using the Lowe's ratio test
         
+        vector<Point2f> points1;
+        vector<Point2f> points2;
         for (size_t i = 0; i < knn_matches.size(); i++)
         {
             if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance)
             {      
                 good_matches.push_back(knn_matches[i][0]);
+                int inx1 = knn_matches[i][0].queryIdx;
+                points1.push_back(keypoints_old[inx1].pt);
+                int inx2 = knn_matches[i][0].trainIdx;
+                points2.push_back(keypoints[inx2].pt);
+                
             }
         }
         //-- Draw matches
@@ -70,6 +81,37 @@ void reconstruct(string imagesDirPath){
         //            Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
         //imwrite("./tmp/" + to_string(imageIndex) + ".png", img_matches);
 
+        //https://python.hotexamples.com/examples/cv2/-/findEssentialMat/python-findessentialmat-function-examples.html
+
+        vector<unsigned char> inliersMask(points1.size());
+        Mat essentialMatrix = findEssentialMat(points1,
+                                            points2,
+                                            CAMERA_MATRIX,
+                                            RANSAC,
+                                            PROBABILITY,
+                                            THRESHOLD,
+                                            inliersMask);
+
+
+
+
+        Mat R, t, triangulatedPoints;
+        recoverPose	(essentialMatrix,
+            points1,
+            points2,
+            CAMERA_MATRIX,
+            R,
+            t,
+            DISTANCE_THRESHOLD,
+            inliersMask,
+            triangulatedPoints);
+        
+        cout << imageIndex << endl;
+        cout << t << endl;
+        cout << R << endl;
+        //cout << triangulatedPoints.rows <<  " " << triangulatedPoints.cols << endl;
+        cout << format(triangulatedPoints.t(), Formatter::FMT_PYTHON) << endl;
+        cout << endl;
 
 
         keypoints_old = keypoints;
