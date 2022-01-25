@@ -10,7 +10,25 @@ void reconstruct(string imagesDirPath){
     vector<String> images;
     glob(imagesDirPath, images);
     
-    Ptr<Feature2D> detector = cv::SiftFeatureDetector::create();
+    //int nfeatures = 0;
+    //int nOctaveLayers = 3;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 10;
+    //double sigma = 1.6;
+
+    int nfeatures = 0;
+    int nOctaveLayers = 3;
+    double contrastThreshold = 0.004;
+    double edgeThreshold = 3;
+    double sigma = 1.6;
+
+    Ptr<Feature2D> detector = cv::SiftFeatureDetector::create(nfeatures,
+                                                            nOctaveLayers,
+                                                            contrastThreshold,
+                                                            edgeThreshold,
+                                                            sigma);
+
+
     //https://stackoverflow.com/questions/44081455/c-siftfeaturedetector-is-not-loading
     //https://docs.opencv.org/4.4.0/d5/d6f/tutorial_feature_flann_matcher.html
     //https://www.analyticsvidhya.com/blog/2019/10/detailed-guide-powerful-sift-technique-image-matching-python/
@@ -33,6 +51,7 @@ void reconstruct(string imagesDirPath){
     vector<DMatch> good_matches;
     vector<DMatch> good_matches_Inliers;
     vector<DMatch> good_matches_2;
+    vector<DMatch> good_matches_2_old;
 
     Mat CAMERA_MATRIX = (Mat_<float>(3,3) << 1487.886270357746, 0, 547.1524898799552,
                                 0, 1488.787677381604, 979.9460018614599,
@@ -124,32 +143,50 @@ void reconstruct(string imagesDirPath){
         
 
 
-        //cout << imageIndex << endl;
-        //cout << t << endl;
-        //cout << R << endl;
-        //cout << triangulatedPoints.rows <<  " " << triangulatedPoints.cols << endl;
-        //cout << format(triangulatedPoints.t(), Formatter::FMT_PYTHON) << endl;
-        //cout << endl;
-        int tt = 0;
+
+        int nPoints2 = countNonZero(mask2);
+        int index2 = 0;
+        Mat triangulatedPoints2 = Mat::zeros(Size(nPoints2, 4), CV_32FC1);
+        //Mat column = Mat::zeros(Size(1, 4), CV_32FC1);
         for (size_t i = 0; i < good_matches_Inliers.size(); i++) {
             if (mask2.at<unsigned char>(i)) { 
                 good_matches_2.push_back(good_matches_Inliers[i]);
-                tt++;
+                triangulatedPoints.col(i).copyTo(triangulatedPoints2.col(index2));
+                index2++;
             }
-        } 
+        }
 
+        //https://github.com/opencv/opencv/blob/8b4fa2605e1155bbef0d906bb1f272ec06d7796e/modules/calib3d/test/test_cameracalibration.cpp#L1513
+
+        vector<Point3f> triangulatedPoints3d;
+        convertPointsFromHomogeneous(triangulatedPoints2.t(), triangulatedPoints3d);
 
         cout << "ponits1 : " << points1.size() << endl;
         cout << "good_matches : " << good_matches.size() << endl;
         cout << "good_matches_Inliers : " << good_matches_Inliers.size() << endl;
         cout << "mask2 : " << countNonZero(mask2) << endl;
         cout << "good_matches_2 : " << good_matches_2.size() << endl;
-        cout << "tt : " << tt << endl;
         cout << "points1Inliers: " << points1Inliers.size() << endl;
         cout << "triangulatedPoints: " << triangulatedPoints.rows <<  " " << triangulatedPoints.cols << endl;
+        cout << "triangulatedPoints2: " << triangulatedPoints2.size << endl; // 4 x 247
+        cout << "triangulatedPoints3d: " << triangulatedPoints3d.size() << endl; //247
+        cout << "triangulatedPoints3d[0]: " << triangulatedPoints3d[0] << endl;
+        
+
+
+        int nCrossClouds = 0;
+        if (imageIndex > 1) {
+            // find cross of two sequental point clouds:
+            for (size_t i = 0; i < good_matches_2.size(); i++) {
+                for (size_t j = 0; j < good_matches_2_old.size(); j++) {
+                    if (good_matches_2_old[j].trainIdx == good_matches_2_old[i].queryIdx) {
+                        nCrossClouds++;
+                    }
+                }
+            }
+        }
+        cout << "nCrossClouds : " << nCrossClouds << endl;
         cout << endl;
-
-
 
 
         keypoints_old = keypoints;
@@ -162,6 +199,7 @@ void reconstruct(string imagesDirPath){
         knn_matches.clear();
         good_matches.clear();
         good_matches_Inliers.clear();
+        good_matches_2_old = good_matches_2;
         good_matches_2.clear();
  
     }
