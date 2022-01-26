@@ -3,6 +3,16 @@
 
 #include <string>
 using namespace std;
+#include <opencv2/opencv.hpp>
+using namespace cv;
+
+void rotateAndShiftPoints(vector<Point3f> & pointsInput,
+                    Mat & R,
+                    Mat & t,
+                    vector<Point3f> & pointsOutput);
+
+float Point3fNorm(Point3f & point);
+float findScale(vector<Point3f> & points1, vector<Point3f> & points2);
 
 void reconstruct(string imagesDirPath);
 

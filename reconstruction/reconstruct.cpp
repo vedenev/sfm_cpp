@@ -5,6 +5,49 @@
 using namespace std;
 using namespace cv;
 
+void rotateAndShiftPoints(vector<Point3f> & pointsInput,
+                    Mat & R,
+                    Mat & t,
+                    vector<Point3f> & pointsOutput) {
+    Mat Rf, tf;
+    R.convertTo(Rf, CV_32F);
+    t.convertTo(tf, CV_32F);
+    for (auto &point : pointsInput) {
+        Mat pointMat = (Mat_<float>(3, 1) << point.x, point.y, point.z);
+        //cout << "type: " << R.type() << " " << pointMat.type() << " " << t.type() << endl;
+        //Mat pointMatResult = Rf * pointMat + tf;
+        Mat pointMatResult = Rf * (pointMat - tf);
+        Point3d pointResult(pointMatResult);
+        pointsOutput.push_back(pointResult);
+    }
+
+}
+
+float Point3fNorm(Point3f & point){
+    return sqrt(point.x * point.x + 
+        point.y * point.y + 
+        point.z * point.z);
+}
+
+float findScale(vector<Point3f> & points1, vector<Point3f> & points2) {
+    float scaleSum = 0.0f;
+    float scaleSum2 = 0.0f;
+    for (size_t i = 0; i < points1.size(); i++) {
+        float norm1 = Point3fNorm(points1[i]);
+        float norm2 = Point3fNorm(points2[i]);
+        float scaleCurrent = norm1 / norm2;
+        //cout << "scaleCurrent: " << norm1 << " " << norm2 << " " << scaleCurrent << endl;
+        scaleSum += scaleCurrent;
+        scaleSum2 += scaleCurrent * scaleCurrent;
+    }
+    float scale = scaleSum / points1.size();
+    float std_ = sqrt((scaleSum2 / points1.size())  - scale * scale);
+    cout << "scale stat: " << "mean: " << scale << " std: " << std_ << " stdn: " << std_ / scale << endl;
+    for (size_t i = 0; i < 3; i++) {
+        cout << "a: " << points1[i].x << " " << points1[i].y << " " << points1[i].z << "  " << scale * points2[i].x << " " << scale * points2[i].y << " " << scale * points2[i].z << endl;
+    }
+    return scale;
+}
 
 void reconstruct(string imagesDirPath){
     vector<String> images;
@@ -51,6 +94,14 @@ void reconstruct(string imagesDirPath){
     vector<DMatch> good_matches_2;
     vector<DMatch> good_matches_2_old;
 
+    Mat R, t;
+    Mat R_old, t_old;
+
+    vector<Point3f> pointsCloudTotal;
+
+    vector<Point3f> triangulatedPoints3d;
+    vector<Point3f> triangulatedPoints3d_old;
+
     Mat CAMERA_MATRIX = (Mat_<float>(3,3) << 1487.886270357746, 0, 547.1524898799552,
                                 0, 1488.787677381604, 979.9460018614599,
                                 0, 0, 1);
@@ -68,10 +119,11 @@ void reconstruct(string imagesDirPath){
     detector->detectAndCompute(gray_old, noArray(), keypoints_old, descriptors_old);
 
     int nZeroIntersect = 0;
-    for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
+    //for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
     //for(int imageIndex = 1; imageIndex < 2; imageIndex++) {
     //for(int imageIndex = 33; imageIndex < 35; imageIndex++) {
     //for(int imageIndex = 24; imageIndex < 27; imageIndex++) {
+    for(int imageIndex = 1; imageIndex < 7; imageIndex++) {
 
         cout << imageIndex << endl;
 
@@ -97,6 +149,7 @@ void reconstruct(string imagesDirPath){
                 int inx1 = knn_matches[i][0].queryIdx;
                 points1.push_back(keypoints_old[inx1].pt);
                 int inx2 = knn_matches[i][0].trainIdx;
+                cout << "ii: " << knn_matches[i][0].imgIdx << endl;
                 points2.push_back(keypoints[inx2].pt);
                 
             }
@@ -133,7 +186,7 @@ void reconstruct(string imagesDirPath){
 
         cout << "inliersMask : " << countNonZero(inliersMask) << endl;
 
-        Mat R, t, triangulatedPoints, mask2;
+        Mat triangulatedPoints, mask2;
         recoverPose(essentialMatrix,
             points1Inliers,
             points2Inliers,
@@ -161,7 +214,7 @@ void reconstruct(string imagesDirPath){
 
         //https://github.com/opencv/opencv/blob/8b4fa2605e1155bbef0d906bb1f272ec06d7796e/modules/calib3d/test/test_cameracalibration.cpp#L1513
 
-        vector<Point3f> triangulatedPoints3d;
+        
         convertPointsFromHomogeneous(triangulatedPoints2.t(), triangulatedPoints3d);
 
         cout << "ponits1 : " << points1.size() << endl;
@@ -178,11 +231,17 @@ void reconstruct(string imagesDirPath){
 
 
         int nCrossClouds = 0;
-        if (imageIndex > 1) {
+        if (imageIndex == 1) {
+            pointsCloudTotal.insert(pointsCloudTotal.end(), triangulatedPoints3d.begin(), triangulatedPoints3d.end() );
+        } else {
             // find cross of two sequental point clouds:
+            vector<Point3f> triangulatedPoints3d_intersection;
+            vector<Point3f> triangulatedPoints3d_old_intersection;
             for (size_t i = 0; i < good_matches_2.size(); i++) {
                 for (size_t j = 0; j < good_matches_2_old.size(); j++) {
                     if (good_matches_2_old[j].trainIdx == good_matches_2[i].queryIdx) {
+                        triangulatedPoints3d_intersection.push_back(triangulatedPoints3d[i]);
+                        triangulatedPoints3d_old_intersection.push_back(triangulatedPoints3d_old[j]);
                         nCrossClouds++;
                     }
                 }
@@ -190,6 +249,13 @@ void reconstruct(string imagesDirPath){
             if (nCrossClouds == 0) {
                 nZeroIntersect++;
             }
+
+            vector<Point3f> triangulatedPoints3d_old_intersection_rotated;
+            rotateAndShiftPoints(triangulatedPoints3d_old_intersection,
+                    R_old,
+                    t_old,
+                    triangulatedPoints3d_old_intersection_rotated);
+            float scale = findScale(triangulatedPoints3d_old_intersection_rotated, triangulatedPoints3d_intersection);
         }
         cout << "nCrossClouds : " << nCrossClouds << endl;
         cout << endl;
@@ -200,6 +266,12 @@ void reconstruct(string imagesDirPath){
 
         descriptors_old = descriptors;
         image_old = image;
+
+        R_old = R;
+        t_old = t;
+
+        triangulatedPoints3d_old = triangulatedPoints3d;
+        triangulatedPoints3d.clear();
         
 
         knn_matches.clear();
