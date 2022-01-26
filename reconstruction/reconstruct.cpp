@@ -10,17 +10,153 @@ void reconstruct(string imagesDirPath){
     vector<String> images;
     glob(imagesDirPath, images);
     
+    // 137, 2
     //int nfeatures = 0;
     //int nOctaveLayers = 3;
     //double contrastThreshold = 0.04;
     //double edgeThreshold = 10;
     //double sigma = 1.6;
 
+    // 148, 7
+    //int nfeatures = 0;
+    //int nOctaveLayers = 5;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 10;
+    //double sigma = 1.6;
+
+    // 190, 1
+    //int nfeatures = 0;
+    //int nOctaveLayers = 5;
+    //double contrastThreshold = 0.02;
+    //double edgeThreshold = 10;
+    //double sigma = 1.6;
+
+    
+    // 139, 9
+    //int nfeatures = 0;
+    //int nOctaveLayers = 6;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 10;
+    //double sigma = 1.6;
+
+    // now from 25 stat not 34:
+
+    // 6, 0
+    //int nfeatures = 0;
+    //int nOctaveLayers = 6;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 10;
+    //double sigma = 1.6;
+
+    // 9, 0
+    //int nfeatures = 0;
+    //int nOctaveLayers = 5;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 10;
+    //double sigma = 1.6;
+
+    // 8, 2
+    //int nfeatures = 0;
+    //int nOctaveLayers = 5;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 20;
+    //double sigma = 1.6;
+
+    //now nZeroIntersect
+
+    // 4:
+    //int nfeatures = 0;
+    //int nOctaveLayers = 5;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 20;
+    //double sigma = 1.6;
+
+
+    // 6:
+    //int nfeatures = 0;
+    //int nOctaveLayers = 6;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 20;
+    //double sigma = 1.6;
+
+    // 3:
+    //int nfeatures = 0;
+    //int nOctaveLayers = 4;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 20;
+    //double sigma = 1.6;
+
+    // 4
+    //int nfeatures = 0;
+    //int nOctaveLayers = 4;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 10;
+    //double sigma = 1.6;
+
+    // 7
+    //int nfeatures = 0;
+    //int nOctaveLayers = 4;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 30;
+    //double sigma = 1.6;
+
+    // 6
+    //int nfeatures = 0;
+    //int nOctaveLayers = 4;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 15;
+    //double sigma = 1.6;
+
+    // 5:
+    //int nfeatures = 0;
+    //int nOctaveLayers = 4;
+    //double contrastThreshold = 0.04;
+    //double edgeThreshold = 25;
+    //double sigma = 1.6;
+
+    // 3:
+    //int nfeatures = 0;
+    //int nOctaveLayers = 4;
+    //double contrastThreshold = 0.03;
+    //double edgeThreshold = 20;
+    //double sigma = 1.6;
+
+
+    // 8:
+    //int nfeatures = 0;
+    //int nOctaveLayers = 4;
+    //double contrastThreshold = 0.02;
+    //double edgeThreshold = 20;
+    //double sigma = 1.6;
+
+    // 4:
+    //int nfeatures = 0;
+    //int nOctaveLayers = 4;
+    //double contrastThreshold = 0.05;
+    //double edgeThreshold = 20;
+    //double sigma = 1.6;
+
+    // 2:
+    //int nfeatures = 0;
+    //int nOctaveLayers = 4;
+    //double contrastThreshold = 0.035;
+    //double edgeThreshold = 20;
+    //double sigma = 1.6;
+
+    // 1:
+    //int nfeatures = 0;
+    //int nOctaveLayers = 4;
+    //double contrastThreshold = 0.035;
+    //double edgeThreshold = 20;
+    //double sigma = 2.0;
+
     int nfeatures = 0;
-    int nOctaveLayers = 3;
-    double contrastThreshold = 0.004;
-    double edgeThreshold = 3;
-    double sigma = 1.6;
+    int nOctaveLayers = 4;
+    double contrastThreshold = 0.035;
+    double edgeThreshold = 20;
+    double sigma = 2.0;
+
+    
 
     Ptr<Feature2D> detector = cv::SiftFeatureDetector::create(nfeatures,
                                                             nOctaveLayers,
@@ -69,10 +205,15 @@ void reconstruct(string imagesDirPath){
     cvtColor(image_old, gray_old, COLOR_BGR2GRAY);
     detector->detectAndCompute(gray_old, noArray(), keypoints_old, descriptors_old);
 
+    int nZeroIntersect = 0;
     for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
     //for(int imageIndex = 1; imageIndex < 2; imageIndex++) {
+    //for(int imageIndex = 33; imageIndex < 35; imageIndex++) {
+    //for(int imageIndex = 24; imageIndex < 27; imageIndex++) {
 
-        
+        cout << imageIndex << endl;
+
+        cout << images[imageIndex] << endl;
         
         image = imread(images[imageIndex]);
         cvtColor(image, gray, COLOR_BGR2GRAY);
@@ -126,7 +267,7 @@ void reconstruct(string imagesDirPath){
         }
 
 
-        cout << imageIndex << endl;
+        
 
         cout << "inliersMask : " << countNonZero(inliersMask) << endl;
 
@@ -184,6 +325,9 @@ void reconstruct(string imagesDirPath){
                     }
                 }
             }
+            if (nCrossClouds == 0) {
+                nZeroIntersect++;
+            }
         }
         cout << "nCrossClouds : " << nCrossClouds << endl;
         cout << endl;
@@ -211,4 +355,6 @@ void reconstruct(string imagesDirPath){
     descriptors.release();
     img_matches.release();
 
+    cout << endl;
+    cout << "nZeroIntersect : " << nZeroIntersect << endl;
 }
