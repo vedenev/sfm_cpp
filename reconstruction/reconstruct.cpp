@@ -10,145 +10,7 @@ void reconstruct(string imagesDirPath){
     vector<String> images;
     glob(imagesDirPath, images);
     
-    // 137, 2
-    //int nfeatures = 0;
-    //int nOctaveLayers = 3;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 10;
-    //double sigma = 1.6;
-
-    // 148, 7
-    //int nfeatures = 0;
-    //int nOctaveLayers = 5;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 10;
-    //double sigma = 1.6;
-
-    // 190, 1
-    //int nfeatures = 0;
-    //int nOctaveLayers = 5;
-    //double contrastThreshold = 0.02;
-    //double edgeThreshold = 10;
-    //double sigma = 1.6;
-
     
-    // 139, 9
-    //int nfeatures = 0;
-    //int nOctaveLayers = 6;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 10;
-    //double sigma = 1.6;
-
-    // now from 25 stat not 34:
-
-    // 6, 0
-    //int nfeatures = 0;
-    //int nOctaveLayers = 6;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 10;
-    //double sigma = 1.6;
-
-    // 9, 0
-    //int nfeatures = 0;
-    //int nOctaveLayers = 5;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 10;
-    //double sigma = 1.6;
-
-    // 8, 2
-    //int nfeatures = 0;
-    //int nOctaveLayers = 5;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 20;
-    //double sigma = 1.6;
-
-    //now nZeroIntersect
-
-    // 4:
-    //int nfeatures = 0;
-    //int nOctaveLayers = 5;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 20;
-    //double sigma = 1.6;
-
-
-    // 6:
-    //int nfeatures = 0;
-    //int nOctaveLayers = 6;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 20;
-    //double sigma = 1.6;
-
-    // 3:
-    //int nfeatures = 0;
-    //int nOctaveLayers = 4;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 20;
-    //double sigma = 1.6;
-
-    // 4
-    //int nfeatures = 0;
-    //int nOctaveLayers = 4;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 10;
-    //double sigma = 1.6;
-
-    // 7
-    //int nfeatures = 0;
-    //int nOctaveLayers = 4;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 30;
-    //double sigma = 1.6;
-
-    // 6
-    //int nfeatures = 0;
-    //int nOctaveLayers = 4;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 15;
-    //double sigma = 1.6;
-
-    // 5:
-    //int nfeatures = 0;
-    //int nOctaveLayers = 4;
-    //double contrastThreshold = 0.04;
-    //double edgeThreshold = 25;
-    //double sigma = 1.6;
-
-    // 3:
-    //int nfeatures = 0;
-    //int nOctaveLayers = 4;
-    //double contrastThreshold = 0.03;
-    //double edgeThreshold = 20;
-    //double sigma = 1.6;
-
-
-    // 8:
-    //int nfeatures = 0;
-    //int nOctaveLayers = 4;
-    //double contrastThreshold = 0.02;
-    //double edgeThreshold = 20;
-    //double sigma = 1.6;
-
-    // 4:
-    //int nfeatures = 0;
-    //int nOctaveLayers = 4;
-    //double contrastThreshold = 0.05;
-    //double edgeThreshold = 20;
-    //double sigma = 1.6;
-
-    // 2:
-    //int nfeatures = 0;
-    //int nOctaveLayers = 4;
-    //double contrastThreshold = 0.035;
-    //double edgeThreshold = 20;
-    //double sigma = 1.6;
-
-    // 1:
-    //int nfeatures = 0;
-    //int nOctaveLayers = 4;
-    //double contrastThreshold = 0.035;
-    //double edgeThreshold = 20;
-    //double sigma = 2.0;
 
     int nfeatures = 0;
     int nOctaveLayers = 4;
@@ -320,7 +182,7 @@ void reconstruct(string imagesDirPath){
             // find cross of two sequental point clouds:
             for (size_t i = 0; i < good_matches_2.size(); i++) {
                 for (size_t j = 0; j < good_matches_2_old.size(); j++) {
-                    if (good_matches_2_old[j].trainIdx == good_matches_2_old[i].queryIdx) {
+                    if (good_matches_2_old[j].trainIdx == good_matches_2[i].queryIdx) {
                         nCrossClouds++;
                     }
                 }
