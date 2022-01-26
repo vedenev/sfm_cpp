@@ -149,7 +149,6 @@ void reconstruct(string imagesDirPath){
                 int inx1 = knn_matches[i][0].queryIdx;
                 points1.push_back(keypoints_old[inx1].pt);
                 int inx2 = knn_matches[i][0].trainIdx;
-                cout << "ii: " << knn_matches[i][0].imgIdx << endl;
                 points2.push_back(keypoints[inx2].pt);
                 
             }
@@ -212,6 +211,11 @@ void reconstruct(string imagesDirPath){
             }
         }
 
+        
+        drawMatches(image_old.clone(), keypoints_old, image.clone(), keypoints, good_matches_2, img_matches, Scalar::all(-1),
+                    Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+        imwrite("./tmp/" + to_string(imageIndex) + ".png", img_matches);
+
         //https://github.com/opencv/opencv/blob/8b4fa2605e1155bbef0d906bb1f272ec06d7796e/modules/calib3d/test/test_cameracalibration.cpp#L1513
 
         
@@ -264,11 +268,15 @@ void reconstruct(string imagesDirPath){
         keypoints_old = keypoints;
         keypoints.clear();
 
-        descriptors_old = descriptors;
-        image_old = image;
+        descriptors_old = descriptors.clone();
+        descriptors.release();
+        image_old = image.clone();
+        image.release();
 
-        R_old = R;
-        t_old = t;
+        R_old = R.clone();
+        R.release();
+        t_old = t.clone();
+        t.release();
 
         triangulatedPoints3d_old = triangulatedPoints3d;
         triangulatedPoints3d.clear();
