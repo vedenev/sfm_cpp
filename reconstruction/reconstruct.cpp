@@ -15,8 +15,8 @@ void rotateAndShiftPoints(vector<Point3f> & pointsInput,
     for (auto &point : pointsInput) {
         Mat pointMat = (Mat_<float>(3, 1) << point.x, point.y, point.z);
         //cout << "type: " << R.type() << " " << pointMat.type() << " " << t.type() << endl;
-        //Mat pointMatResult = Rf * pointMat + tf;
-        Mat pointMatResult = Rf * (pointMat - tf);
+        Mat pointMatResult = Rf * pointMat + tf;
+        //Mat pointMatResult = Rf * (pointMat - tf);
         Point3d pointResult(pointMatResult);
         pointsOutput.push_back(pointResult);
     }
@@ -119,11 +119,11 @@ void reconstruct(string imagesDirPath){
     detector->detectAndCompute(gray_old, noArray(), keypoints_old, descriptors_old);
 
     int nZeroIntersect = 0;
-    //for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
+    for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
     //for(int imageIndex = 1; imageIndex < 2; imageIndex++) {
     //for(int imageIndex = 33; imageIndex < 35; imageIndex++) {
     //for(int imageIndex = 24; imageIndex < 27; imageIndex++) {
-    for(int imageIndex = 1; imageIndex < 7; imageIndex++) {
+    //for(int imageIndex = 1; imageIndex < 7; imageIndex++) {
 
         cout << imageIndex << endl;
 
@@ -202,25 +202,50 @@ void reconstruct(string imagesDirPath){
         int nPoints2 = countNonZero(mask2);
         int index2 = 0;
         Mat triangulatedPoints2 = Mat::zeros(Size(nPoints2, 4), CV_32FC1);
-        //Mat column = Mat::zeros(Size(1, 4), CV_32FC1);
+        vector<Point2f> points1_2;
+        vector<Point2f> points2_2;
         for (size_t i = 0; i < good_matches_Inliers.size(); i++) {
             if (mask2.at<unsigned char>(i)) { 
                 good_matches_2.push_back(good_matches_Inliers[i]);
                 triangulatedPoints.col(i).copyTo(triangulatedPoints2.col(index2));
+                points1_2.push_back(points1Inliers[i]);
+                points2_2.push_back(points2Inliers[i]);
                 index2++;
             }
         }
 
         
-        drawMatches(image_old.clone(), keypoints_old, image.clone(), keypoints, good_matches_2, img_matches, Scalar::all(-1),
-                    Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
-        imwrite("./tmp/" + to_string(imageIndex) + ".png", img_matches);
+
+        
+        //drawMatches(image_old.clone(), keypoints_old, image.clone(), keypoints, good_matches_2, img_matches, Scalar::all(-1),
+        //            Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+        //imwrite("./tmp/" + to_string(imageIndex) + ".png", img_matches);
 
         //https://github.com/opencv/opencv/blob/8b4fa2605e1155bbef0d906bb1f272ec06d7796e/modules/calib3d/test/test_cameracalibration.cpp#L1513
 
         
         convertPointsFromHomogeneous(triangulatedPoints2.t(), triangulatedPoints3d);
 
+        vector<Point3f> triangulatedPoints3d_rotated;
+        rotateAndShiftPoints(triangulatedPoints3d,
+                    R,
+                    t,
+                    triangulatedPoints3d_rotated);
+        //for (size_t i = 0; i < good_matches_2.size(); i++) {
+        //    float xz = (points1_2[i].x - CAMERA_MATRIX.at<float>(0, 2)) / CAMERA_MATRIX.at<float>(0, 0);
+        //    float yz = (points1_2[i].y - CAMERA_MATRIX.at<float>(1, 2)) / CAMERA_MATRIX.at<float>(1, 1);
+        //    float xz_3d = triangulatedPoints3d[i].x / triangulatedPoints3d[i].z;
+        //    float yz_3d = triangulatedPoints3d[i].y / triangulatedPoints3d[i].z;
+        //    cout << "z: " << xz << " " << yz << "   " << xz_3d << " " << yz_3d << endl;
+        //}
+        //for (size_t i = 0; i < good_matches_2.size(); i++) {
+        //    float xz = (points2_2[i].x - CAMERA_MATRIX.at<float>(0, 2)) / CAMERA_MATRIX.at<float>(0, 0);
+        //    float yz = (points2_2[i].y - CAMERA_MATRIX.at<float>(1, 2)) / CAMERA_MATRIX.at<float>(1, 1);
+        //    float xz_3d = triangulatedPoints3d_rotated[i].x / triangulatedPoints3d_rotated[i].z;
+        //    float yz_3d = triangulatedPoints3d_rotated[i].y / triangulatedPoints3d_rotated[i].z;
+        //    cout << "zr: " << xz << " " << yz << "   " << xz_3d << " " << yz_3d << endl;
+        //}
+        
         cout << "ponits1 : " << points1.size() << endl;
         cout << "good_matches : " << good_matches.size() << endl;
         cout << "good_matches_Inliers : " << good_matches_Inliers.size() << endl;
@@ -241,6 +266,12 @@ void reconstruct(string imagesDirPath){
             // find cross of two sequental point clouds:
             vector<Point3f> triangulatedPoints3d_intersection;
             vector<Point3f> triangulatedPoints3d_old_intersection;
+            //for (size_t j = 0; j < good_matches_2_old.size(); j++) {
+            //    cout << "gm_old: " << good_matches_2_old[j].trainIdx << endl;
+            //}
+            //for (size_t i = 0; i < good_matches_2.size(); i++) {
+            //    cout << "gm: " << good_matches_2[i].queryIdx << endl;
+            //}
             for (size_t i = 0; i < good_matches_2.size(); i++) {
                 for (size_t j = 0; j < good_matches_2_old.size(); j++) {
                     if (good_matches_2_old[j].trainIdx == good_matches_2[i].queryIdx) {
@@ -262,16 +293,27 @@ void reconstruct(string imagesDirPath){
             float scale = findScale(triangulatedPoints3d_old_intersection_rotated, triangulatedPoints3d_intersection);
         }
         cout << "nCrossClouds : " << nCrossClouds << endl;
-        cout << endl;
+        
 
+        //cout << "R_old =" << R_old << endl;
+        //cout << "R =" << R << endl;
+
+
+        //if (imageIndex > 1) {
+        //    cout << "tp3d_old[0]: " << triangulatedPoints3d_old[0].x << " " << triangulatedPoints3d_old[0].y << " " << triangulatedPoints3d_old[0].z << endl;
+        //    cout << "tp3d[0]: " << triangulatedPoints3d[0].x << " " << triangulatedPoints3d[0].y << " " << triangulatedPoints3d[0].z << endl;
+        //}
 
         keypoints_old = keypoints;
         keypoints.clear();
 
         descriptors_old = descriptors.clone();
         descriptors.release();
+        
         image_old = image.clone();
         image.release();
+
+
 
         R_old = R.clone();
         R.release();
@@ -283,11 +325,16 @@ void reconstruct(string imagesDirPath){
         
 
         knn_matches.clear();
+
         good_matches.clear();
+
         good_matches_Inliers.clear();
+
         good_matches_2_old = good_matches_2;
         good_matches_2.clear();
- 
+
+
+        cout << endl;
     }
     image_old.release();
     gray_old.release();
