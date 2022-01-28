@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <fstream>
 using namespace std;
 using namespace cv;
 
@@ -57,7 +58,32 @@ void scalePoints(vector<Point3f> & points, float scale) {
     }
 }
 
+void wrtitePly(string plyPath, vector<Point3f> & pointsCloudTotal, vector<Vec3b> & pointsCloudTotalColors) {
+    ofstream plyFile;
+    plyFile.open (plyPath);
+    plyFile << "ply" << endl;
+    plyFile << "format ascii 1.0" << endl;
+    plyFile << "element vertex " << pointsCloudTotal.size() << endl;
+    plyFile << "property float x" << endl;
+    plyFile << "property float y" << endl;
+    plyFile << "property float z" << endl;
+    plyFile << "property uchar blue" << endl;
+    plyFile << "property uchar green" << endl;
+    plyFile << "property uchar red" << endl;
+    plyFile << "end_header" << endl;
+    for (size_t i = 0; i < pointsCloudTotal.size(); i++) {
+        Point3f point = pointsCloudTotal[i];
+        Vec3b color = pointsCloudTotalColors[i];
+        plyFile << point.x << " " << point.y << " " << point.z << " " <<
+            (int)color[0] << " " << (int)color[1] << " " << (int)color[2] << " " << endl;
+    }
+    plyFile.close();
+}
+
 void reconstruct(string imagesDirPath){
+
+    string OUTPUT_PLY_PATH = "pointCloud.ply";
+
     vector<String> images;
     glob(imagesDirPath, images);
     
@@ -106,6 +132,7 @@ void reconstruct(string imagesDirPath){
     Mat R_old, t_old;
 
     vector<Point3f> pointsCloudTotal;
+    vector<Vec3b> pointsCloudTotalColors;
 
     vector<Point3f> triangulatedPoints3d;
     vector<Point3f> triangulatedPoints3d_old;
@@ -216,12 +243,18 @@ void reconstruct(string imagesDirPath){
         Mat triangulatedPoints2 = Mat::zeros(Size(nPoints2, 4), CV_32FC1);
         vector<Point2f> points1_2;
         vector<Point2f> points2_2;
+        vector<Vec3b> triangulatedPoints3dColors;
         for (size_t i = 0; i < good_matches_Inliers.size(); i++) {
             if (mask2.at<unsigned char>(i)) { 
-                good_matches_2.push_back(good_matches_Inliers[i]);
+                DMatch match = good_matches_Inliers[i];
+                good_matches_2.push_back(match);
                 triangulatedPoints.col(i).copyTo(triangulatedPoints2.col(index2));
                 points1_2.push_back(points1Inliers[i]);
                 points2_2.push_back(points2Inliers[i]);
+                int inx_old = match.queryIdx;
+                Point2f point = keypoints_old[inx_old].pt;
+                Vec3b color = image_old.at<Vec3b>(point);
+                triangulatedPoints3dColors.push_back(color);
                 index2++;
             }
         }
@@ -274,7 +307,7 @@ void reconstruct(string imagesDirPath){
 
         int nCrossClouds = 0;
         if (imageIndex == 1) {
-            pointsCloudTotal.insert(pointsCloudTotal.end(), triangulatedPoints3d.begin(), triangulatedPoints3d.end() );
+            pointsCloudTotal.insert(pointsCloudTotal.end(), triangulatedPoints3d.begin(), triangulatedPoints3d.end());
         } else {
             // find cross of two sequental point clouds:
             vector<Point3f> triangulatedPoints3d_intersection;
@@ -320,6 +353,7 @@ void reconstruct(string imagesDirPath){
             pointsCloudTotal.insert(pointsCloudTotal.end(), triangulatedPoints3d_rotated_to_base.begin(), triangulatedPoints3d_rotated_to_base.end() );
 
         }
+        pointsCloudTotalColors.insert(pointsCloudTotalColors.end(), triangulatedPoints3dColors.begin(), triangulatedPoints3dColors.end());
         cout << "nCrossClouds : " << nCrossClouds << endl;
         
 
@@ -375,4 +409,7 @@ void reconstruct(string imagesDirPath){
     cout << endl;
     cout << "nZeroIntersect : " << nZeroIntersect << endl;
     cout << "pointsCloudTotal.size(): " << pointsCloudTotal.size() << endl;
+    cout << "pointsCloudTotalColors.size(): " << pointsCloudTotalColors.size() << endl;
+
+    wrtitePly(OUTPUT_PLY_PATH, pointsCloudTotal, pointsCloudTotalColors);
 }

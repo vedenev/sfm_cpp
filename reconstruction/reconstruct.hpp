@@ -14,6 +14,7 @@ void rotateAndShiftPoints(vector<Point3f> & pointsInput,
 float Point3fNorm(Point3f & point);
 float findScale(vector<Point3f> & points1, vector<Point3f> & points2);
 void scalePoints(vector<Point3f> & points, float scale);
+void wrtitePly(string plyPath, vector<Point3f> & pointsCloudTotal, vector<Vec3b> & pointsCloudTotalColors);
 
 void reconstruct(string imagesDirPath);
 
