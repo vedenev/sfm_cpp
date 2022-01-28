@@ -49,6 +49,14 @@ float findScale(vector<Point3f> & points1, vector<Point3f> & points2) {
     return scale;
 }
 
+void scalePoints(vector<Point3f> & points, float scale) {
+    for (size_t i = 0; i < points.size(); i++) {
+        points[i].x = scale * points[i].x;
+        points[i].y = scale * points[i].y;
+        points[i].z = scale * points[i].z;
+    }
+}
+
 void reconstruct(string imagesDirPath){
     vector<String> images;
     glob(imagesDirPath, images);
@@ -118,6 +126,9 @@ void reconstruct(string imagesDirPath){
     cvtColor(image_old, gray_old, COLOR_BGR2GRAY);
     detector->detectAndCompute(gray_old, noArray(), keypoints_old, descriptors_old);
 
+    Mat RTotal = Mat::eye(3, 3, CV_64F);
+    Mat tTotal = Mat::zeros(3, 1, CV_64F);
+
     int nZeroIntersect = 0;
     for(int imageIndex = 1; imageIndex < images.size(); imageIndex++) {
     //for(int imageIndex = 1; imageIndex < 2; imageIndex++) {
@@ -162,6 +173,7 @@ void reconstruct(string imagesDirPath){
         //https://python.hotexamples.com/examples/cv2/-/findEssentialMat/python-findessentialmat-function-examples.html
 
         vector<unsigned char> inliersMask(points1.size());
+        cout << "points1.size(): " << points1.size() << endl;
         Mat essentialMatrix = findEssentialMat(points1,
                                             points2,
                                             CAMERA_MATRIX,
@@ -226,11 +238,11 @@ void reconstruct(string imagesDirPath){
         
         convertPointsFromHomogeneous(triangulatedPoints2.t(), triangulatedPoints3d);
 
-        vector<Point3f> triangulatedPoints3d_rotated;
-        rotateAndShiftPoints(triangulatedPoints3d,
-                    R,
-                    t,
-                    triangulatedPoints3d_rotated);
+        //vector<Point3f> triangulatedPoints3d_rotated;
+        //rotateAndShiftPoints(triangulatedPoints3d,
+        //            R,
+        //            t,
+        //            triangulatedPoints3d_rotated);
         //for (size_t i = 0; i < good_matches_2.size(); i++) {
         //    float xz = (points1_2[i].x - CAMERA_MATRIX.at<float>(0, 2)) / CAMERA_MATRIX.at<float>(0, 0);
         //    float yz = (points1_2[i].y - CAMERA_MATRIX.at<float>(1, 2)) / CAMERA_MATRIX.at<float>(1, 1);
@@ -258,6 +270,7 @@ void reconstruct(string imagesDirPath){
         cout << "triangulatedPoints3d[0]: " << triangulatedPoints3d[0] << endl;
         
 
+        
 
         int nCrossClouds = 0;
         if (imageIndex == 1) {
@@ -291,6 +304,21 @@ void reconstruct(string imagesDirPath){
                     t_old,
                     triangulatedPoints3d_old_intersection_rotated);
             float scale = findScale(triangulatedPoints3d_old_intersection_rotated, triangulatedPoints3d_intersection);
+            t *= scale;
+            scalePoints(triangulatedPoints3d, scale);
+
+
+            RTotal = R_old * RTotal;
+            tTotal = (R_old * tTotal) + t_old;
+            vector<Point3f> triangulatedPoints3d_rotated_to_base;
+            Mat RTotalInv = RTotal.t();
+            Mat tTotalInv = -(RTotalInv * tTotal);
+            rotateAndShiftPoints(triangulatedPoints3d,
+                    RTotalInv,
+                    tTotalInv,
+                    triangulatedPoints3d_rotated_to_base);
+            pointsCloudTotal.insert(pointsCloudTotal.end(), triangulatedPoints3d_rotated_to_base.begin(), triangulatedPoints3d_rotated_to_base.end() );
+
         }
         cout << "nCrossClouds : " << nCrossClouds << endl;
         
@@ -346,4 +374,5 @@ void reconstruct(string imagesDirPath){
 
     cout << endl;
     cout << "nZeroIntersect : " << nZeroIntersect << endl;
+    cout << "pointsCloudTotal.size(): " << pointsCloudTotal.size() << endl;
 }
