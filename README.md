@@ -1,5 +1,5 @@
 # Structure from motion  
-####Result:  
+#### Result:  
 ![3d visualization](./markdown_site/3d_visualization.gif)  
 You can see pink flower on the doll's belly and yellow back.  
 Also you can see cylinder of the doll.  
@@ -14,7 +14,7 @@ This is because this SfM is intcremetal and errors are accumulated from frame to
 Also we can see that doll cross section is not perfect circle.  
 You can open 3d scan with MeshLab.
 Data is in [pointCloud.ply](./pointCloud.ply) file.  
-####How to use:
+#### How to use:
 ```sfm --video2frames path_to_video```  
    converts video to frames in png format  
    png will be stored in to a folder with name of the video file  
@@ -34,7 +34,7 @@ Data is in [pointCloud.ply](./pointCloud.ply) file.
 Images should have different enough point of view.  
 Otherwise it would have low parallax and low accuracy.
     
-####Description:  
+#### Description:  
 Android Xiaomi redmi note 5 smartphone was used to get videos.  
 First camera was calibrated with chess board images.  
 Distortion was neglected. 
