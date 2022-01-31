@@ -13,7 +13,7 @@ We can see that noise increases along scan direction.
 This is because this SfM is intcremetal and errors are accumulated from frame to frame.  
 Also we can see that doll cross section is not perfect circle.  
 You can open 3d scan with MeshLab.
-Data is in [pointCloud.ply](./pointCloud.ply) file.
+Data is in [pointCloud.ply](./pointCloud.ply) file.  
 Kypoint matching example:  
 ![match example](./markdown_site/match_example.png)  
     
