@@ -67,9 +67,9 @@ void wrtitePly(string plyPath, vector<Point3f> & pointsCloudTotal, vector<Vec3b>
     plyFile << "property float x" << endl;
     plyFile << "property float y" << endl;
     plyFile << "property float z" << endl;
-    plyFile << "property uchar blue" << endl;
-    plyFile << "property uchar green" << endl;
-    plyFile << "property uchar red" << endl;
+    plyFile << "property uchar diffuse_blue" << endl;
+    plyFile << "property uchar diffuse_green" << endl;
+    plyFile << "property uchar diffuse_red" << endl;
     plyFile << "end_header" << endl;
     for (size_t i = 0; i < pointsCloudTotal.size(); i++) {
         Point3f point = pointsCloudTotal[i];
@@ -342,6 +342,7 @@ void reconstruct(string imagesDirPath){
 
 
             RTotal = R_old * RTotal;
+            cout << "det: " << determinant(RTotal) << endl;
             tTotal = (R_old * tTotal) + t_old;
             vector<Point3f> triangulatedPoints3d_rotated_to_base;
             Mat RTotalInv = RTotal.t();
