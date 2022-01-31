@@ -27,6 +27,7 @@ void printUsage() {
 	cout << "sfm --reconstruct path_to_images" << endl;
 	cout << "   reconstruct 3d scene" << endl;
 	cout << "   path_to_images is directory with images" << endl;
+	cout << "   result will be saved to pointCloud.ply" << endl;
 }
 
 int main(int argc, char *argv[]){
