@@ -101,24 +101,23 @@ void reconstruct(string imagesDirPath){
     //https://www.analyticsvidhya.com/blog/2019/10/detailed-guide-powerful-sift-technique-image-matching-python/
     Ptr<DescriptorMatcher> matcher = 
         DescriptorMatcher::create(DescriptorMatcher::FLANNBASED);
-    const float ratio_thresh = 0.7f;
+    const float ratioThresh = 0.7f;
    
-    Mat image_old;
-    Mat gray_old;
-    Mat descriptors_old;
-    vector<KeyPoint> keypoints_old;
+    Mat imageOld;
+    Mat grayOld;
+    Mat descriptorsOld;
+    vector<KeyPoint> keypointsOld;
 
     Mat image;
     Mat gray;
     Mat descriptors;
     vector<KeyPoint> keypoints;
 
-    Mat img_matches;
-    vector<vector<DMatch> > knn_matches;
-    vector<DMatch> good_matches;
-    vector<DMatch> good_matches_Inliers;
-    vector<DMatch> good_matches_2;
-    vector<DMatch> good_matches_2_old;
+    vector<vector<DMatch> > knnMatches;
+    vector<DMatch> goodMatches;
+    vector<DMatch> goodMatchesInliers;
+    vector<DMatch> goodMatches2;
+    vector<DMatch> goodMatches2Old;
 
     Mat R, t;
     Mat R_old, t_old;
@@ -127,7 +126,7 @@ void reconstruct(string imagesDirPath){
     vector<Vec3b> pointsCloudTotalColors;
 
     vector<Point3f> triangulatedPoints3d;
-    vector<Point3f> triangulatedPoints3d_old;
+    vector<Point3f> triangulatedPoints3dOld;
 
     Mat CAMERA_MATRIX = (Mat_<float>(3,3) << 1487.886270357746, 0, 547.1524898799552,
                                 0, 1488.787677381604, 979.9460018614599,
@@ -140,12 +139,12 @@ void reconstruct(string imagesDirPath){
 
     double DISTANCE_THRESHOLD = 100.0;
 
-    image_old = imread(images[0]);
-    cvtColor(image_old, gray_old, COLOR_BGR2GRAY);
-    detector->detectAndCompute(gray_old,
+    imageOld = imread(images[0]);
+    cvtColor(imageOld, grayOld, COLOR_BGR2GRAY);
+    detector->detectAndCompute(grayOld,
                             noArray(),
-                            keypoints_old, 
-                            descriptors_old);
+                            keypointsOld, 
+                            descriptorsOld);
 
     Mat RTotal = Mat::eye(3, 3, CV_64F);
     Mat tTotal = Mat::zeros(3, 1, CV_64F);
@@ -162,21 +161,20 @@ void reconstruct(string imagesDirPath){
 
         
         
-        matcher->knnMatch(descriptors_old, descriptors, knn_matches, 2 );
+        matcher->knnMatch(descriptorsOld, descriptors, knnMatches, 2 );
 
         //-- Filter matches using the Lowe's ratio test
-        
         vector<Point2f> points1;
         vector<Point2f> points2;
-        for (size_t i = 0; i < knn_matches.size(); i++)
+        for (size_t i = 0; i < knnMatches.size(); i++)
         {   
-            float distanceLimit = ratio_thresh * knn_matches[i][1].distance;
-            if (knn_matches[i][0].distance < distanceLimit)
+            float distanceLimit = ratioThresh * knnMatches[i][1].distance;
+            if (knnMatches[i][0].distance < distanceLimit)
             {      
-                good_matches.push_back(knn_matches[i][0]);
-                int inx1 = knn_matches[i][0].queryIdx;
-                points1.push_back(keypoints_old[inx1].pt);
-                int inx2 = knn_matches[i][0].trainIdx;
+                goodMatches.push_back(knnMatches[i][0]);
+                int inx1 = knnMatches[i][0].queryIdx;
+                points1.push_back(keypointsOld[inx1].pt);
+                int inx2 = knnMatches[i][0].trainIdx;
                 points2.push_back(keypoints[inx2].pt);
             }
         }
@@ -194,7 +192,7 @@ void reconstruct(string imagesDirPath){
         vector<Point2f> points2Inliers;
         for (size_t i = 0; i < points1.size(); i++) {
             if (inliersMask[i]) {
-                good_matches_Inliers.push_back(good_matches[i]);
+                goodMatchesInliers.push_back(goodMatches[i]);
                 points1Inliers.push_back(points1[i]);
                 points2Inliers.push_back(points2[i]);
             }
@@ -214,38 +212,46 @@ void reconstruct(string imagesDirPath){
         int nPoints2 = countNonZero(mask2);
         int index2 = 0;
         Mat triangulatedPoints2 = Mat::zeros(Size(nPoints2, 4), CV_32FC1);
-        vector<Point2f> points1_2;
-        vector<Point2f> points2_2;
+        vector<Point2f> points12;
+        vector<Point2f> points22;
         vector<Vec3b> triangulatedPoints3dColors;
-        for (size_t i = 0; i < good_matches_Inliers.size(); i++) {
+        for (size_t i = 0; i < goodMatchesInliers.size(); i++) {
             if (mask2.at<unsigned char>(i)) { 
-                DMatch match = good_matches_Inliers[i];
-                good_matches_2.push_back(match);
-                triangulatedPoints.col(i).copyTo(triangulatedPoints2.col(index2));
-                points1_2.push_back(points1Inliers[i]);
-                points2_2.push_back(points2Inliers[i]);
+                DMatch match = goodMatchesInliers[i];
+                goodMatches2.push_back(match);
+                triangulatedPoints.col(i)
+                                .copyTo(triangulatedPoints2.col(index2));
+                points12.push_back(points1Inliers[i]);
+                points22.push_back(points2Inliers[i]);
                 int inx_old = match.queryIdx;
-                Point2f point = keypoints_old[inx_old].pt;
-                Vec3b color = image_old.at<Vec3b>(point);
+                Point2f point = keypointsOld[inx_old].pt;
+                Vec3b color = imageOld.at<Vec3b>(point);
                 triangulatedPoints3dColors.push_back(color);
                 index2++;
             }
         }
 
-        convertPointsFromHomogeneous(triangulatedPoints2.t(), triangulatedPoints3d);
+        convertPointsFromHomogeneous(triangulatedPoints2.t(),
+                                    triangulatedPoints3d);
 
         int nCrossClouds = 0;
         if (imageIndex == 1) {
-            pointsCloudTotal.insert(pointsCloudTotal.end(), triangulatedPoints3d.begin(), triangulatedPoints3d.end());
+            pointsCloudTotal.insert(pointsCloudTotal.end(),
+                                triangulatedPoints3d.begin(),
+                                triangulatedPoints3d.end());
         } else {
             // find cross of two sequental point clouds:
-            vector<Point3f> triangulatedPoints3d_intersection;
-            vector<Point3f> triangulatedPoints3d_old_intersection;
-            for (size_t i = 0; i < good_matches_2.size(); i++) {
-                for (size_t j = 0; j < good_matches_2_old.size(); j++) {
-                    if (good_matches_2_old[j].trainIdx == good_matches_2[i].queryIdx) {
-                        triangulatedPoints3d_intersection.push_back(triangulatedPoints3d[i]);
-                        triangulatedPoints3d_old_intersection.push_back(triangulatedPoints3d_old[j]);
+            vector<Point3f> triangulatedPoints3dIntersection;
+            vector<Point3f> triangulatedPoints3dOldIntersection;
+            for (size_t i = 0; i < goodMatches2.size(); i++) {
+                for (size_t j = 0; j < goodMatches2Old.size(); j++) {
+                    int indexFromOld = goodMatches2Old[j].trainIdx;
+                    int indexFromCurrent = goodMatches2[i].queryIdx;
+                    if ( indexFromOld == indexFromCurrent) {
+                        triangulatedPoints3dIntersection
+                                .push_back(triangulatedPoints3d[i]);
+                        triangulatedPoints3dOldIntersection
+                                .push_back(triangulatedPoints3dOld[j]);
                         nCrossClouds++;
                     }
                 }
@@ -254,37 +260,42 @@ void reconstruct(string imagesDirPath){
                 nZeroIntersect++;
             }
 
-            vector<Point3f> triangulatedPoints3d_old_intersection_rotated;
-            rotateAndShiftPoints(triangulatedPoints3d_old_intersection,
+            vector<Point3f> triangulatedPoints3dOldIntersectionRotated;
+            rotateAndShiftPoints(triangulatedPoints3dOldIntersection,
                     R_old,
                     t_old,
-                    triangulatedPoints3d_old_intersection_rotated);
-            float scale = findScale(triangulatedPoints3d_old_intersection_rotated, triangulatedPoints3d_intersection);
+                    triangulatedPoints3dOldIntersectionRotated);
+            float scale = findScale(triangulatedPoints3dOldIntersectionRotated,
+                                    triangulatedPoints3dIntersection);
             t *= scale;
             scalePoints(triangulatedPoints3d, scale);
 
             RTotal = R_old * RTotal;
             tTotal = (R_old * tTotal) + t_old;
-            vector<Point3f> triangulatedPoints3d_rotated_to_base;
+            vector<Point3f> triangulatedPoints3dRotatedToBase;
             Mat RTotalInv = RTotal.t();
             Mat tTotalInv = -(RTotalInv * tTotal);
             rotateAndShiftPoints(triangulatedPoints3d,
                     RTotalInv,
                     tTotalInv,
-                    triangulatedPoints3d_rotated_to_base);
-            pointsCloudTotal.insert(pointsCloudTotal.end(), triangulatedPoints3d_rotated_to_base.begin(), triangulatedPoints3d_rotated_to_base.end() );
+                    triangulatedPoints3dRotatedToBase);
+            pointsCloudTotal.insert(pointsCloudTotal.end(),
+                                    triangulatedPoints3dRotatedToBase.begin(),
+                                    triangulatedPoints3dRotatedToBase.end() );
 
         }
-        pointsCloudTotalColors.insert(pointsCloudTotalColors.end(), triangulatedPoints3dColors.begin(), triangulatedPoints3dColors.end());
+        pointsCloudTotalColors.insert(pointsCloudTotalColors.end(),
+                                    triangulatedPoints3dColors.begin(),
+                                    triangulatedPoints3dColors.end());
         cout << "nCrossClouds : " << nCrossClouds << endl;
         
-        keypoints_old = keypoints;
+        keypointsOld = keypoints;
         keypoints.clear();
 
-        descriptors_old = descriptors.clone();
+        descriptorsOld = descriptors.clone();
         descriptors.release();
         
-        image_old = image.clone();
+        imageOld = image.clone();
         image.release();
 
         R_old = R.clone();
@@ -292,28 +303,27 @@ void reconstruct(string imagesDirPath){
         t_old = t.clone();
         t.release();
 
-        triangulatedPoints3d_old = triangulatedPoints3d;
+        triangulatedPoints3dOld = triangulatedPoints3d;
         triangulatedPoints3d.clear();
         
-        knn_matches.clear();
+        knnMatches.clear();
 
-        good_matches.clear();
+        goodMatches.clear();
 
-        good_matches_Inliers.clear();
+        goodMatchesInliers.clear();
 
-        good_matches_2_old = good_matches_2;
-        good_matches_2.clear();
+        goodMatches2Old = goodMatches2;
+        goodMatches2.clear();
 
 
         cout << endl;
     }
-    image_old.release();
-    gray_old.release();
+    imageOld.release();
+    grayOld.release();
     image.release();
     gray.release();
-    descriptors_old.release();
+    descriptorsOld.release();
     descriptors.release();
-    img_matches.release();
 
     cout << endl;
     cout << "nZeroIntersect : " << nZeroIntersect << endl;
