@@ -14,7 +14,7 @@ This is because this SfM is intcremetal and errors are accumulated from frame to
 Also we can see that doll cross section is not perfect circle.  
 You can open 3d scan with MeshLab.
 Data is in [pointCloud.ply](./pointCloud.ply) file.  
-Kypoint matching example:  
+Keypoints matching example:  
 ![match example](./markdown_site/match_example.png)  
     
 #### How to use:
