@@ -44,7 +44,7 @@ Found camera matrix:
 [0, 1488.787677381604, 979.9460018614599],
 [0, 0, 1]]
 ```
-The algoritm works in the follow way:
+The algoritm works in the following way:
 1. Find SIFT keypoints on an image.
 2. Compare descriptors of the keypoints with descriptors from previouse image. Get correspondance.  
 3. Find essential matrix with findEssentialMat function.  
