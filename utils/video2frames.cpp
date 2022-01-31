@@ -17,15 +17,6 @@ void video2frames(string videoPath) {
         cout << "Error opening video file: " << videoPath << endl;
     }
 
-    //cout << "all: " << videoPath << endl;
-    //cout << "filename: " << fs::path(videoPath).filename() << endl;
-    //cout << "parent_path: " << fs::path(videoPath).parent_path() << endl;
-    //cout << "stem: " << fs::path(videoPath).stem() << endl;
-    //all: ../android_xiaomi_redmi_note_5.mp4
-    //filename: "android_xiaomi_redmi_note_5.mp4"
-    //parent_path: ".."
-    //stem: "android_xiaomi_redmi_note_5"
-
     auto videoPathFs = fs::path(videoPath);
     auto outputDirecory = videoPathFs.parent_path() / videoPathFs.stem();
     if(fs::is_directory(outputDirecory)) {

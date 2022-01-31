@@ -80,6 +80,8 @@ void reconstruct(string imagesDirPath){
 
     string OUTPUT_PLY_PATH = "pointCloud.ply";
 
+    cout << "reconstruct ..." << endl;
+
     vector<String> images;
     glob(imagesDirPath, images);
   
@@ -328,6 +330,9 @@ void reconstruct(string imagesDirPath){
     cout << endl;
     cout << "nZeroIntersect : " << nZeroIntersect << endl;
     cout << "pointsCloudTotal.size(): " << pointsCloudTotal.size() << endl;
+    
+    cout << endl;
+    cout << "reconstruction done" << endl;
 
     wrtitePly(OUTPUT_PLY_PATH, pointsCloudTotal, pointsCloudTotalColors);
 }
