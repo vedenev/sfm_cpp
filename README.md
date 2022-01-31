@@ -9,7 +9,7 @@ Here is combined image:
   
 Bottom view:  
 ![scan direction](./markdown_site/doll_scan_2.png)  
-We ca see that noise increase along scan direction.  
+We can see that noise increases along scan direction.  
 This is because this SfM is intremetal and errors are accumultated from frame to frame.  
 Also we can see that doll cross section is not perfect circle.  
 You can open 3d scan with Meshlab.
@@ -35,7 +35,7 @@ Images should have different enought point of view.
 Otherwise it would have low parralax and low accuracy.
     
 ####Description:  
-Android Xiaomi redmi note 5 smartphone was used to get videos. 
+Android Xiaomi redmi note 5 smartphone was used to get videos.  
 First camera was calibrated with chess board images.  
 Distortion was neglected. 
 Found camera matrix:  
@@ -47,9 +47,20 @@ Found camera matrix:
 The algoritm works in follow way:
 1. Find SIFT keypoints on an image.
 2. Compare descriptors of the keypoints with descriptors from previouse image. Get correspondance.  
-3. Find essential matrix with findEssentialMat
+3. Find essential matrix with findEssentialMat function.  
 4. Find relative camera position and 3d point clound with recoverPose functon. Camera matrix is used.  
-5. 
+5. Find scale between current point cloud and previouse point cloud.
+6. Scale current point cloud and relative camera shift.  
+7. Calculate total relative camera position releated to first position.
+8. Rotate and shift current point cloud to coordinate system of the first position of the camera.
+  
+As you can see there is no bundle adjustment here.  
+5 point is inportant becuase relative camera pose shift and point cloud has ambiguity.      
+It can be multiplied by any constant. Thus to define right constant point clouds are compared.  
+Only points that are common for two point clounds can be used.  
+To make 7 point the algorithm keeps current values for rotation matrix and shift from first camera position to current.  
+To make point 8 inverted (transposed) matrix used.  
+![](./markdown_site/frames.jpg)
  
 
 
