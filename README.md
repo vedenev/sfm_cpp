@@ -39,10 +39,18 @@ Android Xiaomi redmi note 5 smartphone was used to get videos.
 First camera was calibrated with chess board images.  
 Distortion was neglected. 
 Found camera matrix:  
-text```
-1487.886270357746, 0, 547.1524898799552,
-0, 1488.787677381604, 979.9460018614599,
-0, 0, 1
-``` 
+```text
+[[1487.886270357746, 0, 547.1524898799552], 
+[0, 1488.787677381604, 979.9460018614599],
+[0, 0, 1]]
+```
+The algoritm works in follow way:
+1. Find SIFT keypoints on an image.
+2. Compare descriptors of the keypoints with descriptors from previouse image. Get correspondance.  
+3. Find essential matrix with findEssentialMat
+4. Find relative camera position and 3d point clound with recoverPose functon. Camera matrix is used.  
+5. 
+ 
+
 
   
